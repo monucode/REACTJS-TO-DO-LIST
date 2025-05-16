@@ -1,4 +1,7 @@
 # Getting Started with Create React App
+## 🌐 Live Demo
+[Click here to view the To-Do List App](https://vpal-98.github.io/REACTJS-TO-DO-LIST/)
+
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
