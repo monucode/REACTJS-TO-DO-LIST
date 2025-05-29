@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,12 +11,13 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Auto-redirect if already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         navigate('/todo');
       }
-    });
+    };
+    checkSession();
   }, [navigate]);
 
   const handleLogin = async (e) => {
@@ -25,13 +25,16 @@ export default function Login() {
     setError('');
     setMessage('');
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    if (error) {
+    if (loginError) {
       setError('Invalid login credentials');
     } else {
       setMessage('Login successful!');
-      navigate('/todo'); // Redirect after login
+      navigate('/todo');
     }
   };
 
@@ -44,8 +47,8 @@ export default function Login() {
       return;
     }
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) setError(error.message);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email);
+    if (resetError) setError(resetError.message);
     else setMessage('Password reset link sent! Check your email.');
   };
 

@@ -6,7 +6,6 @@ import { TodoForm } from "./TodoForm";
 import { v4 as uuidv4 } from "uuid";
 import { EditTodoForm } from "./EditTodoForm";
 import "./Todowrapper.css";
-import logo from '../assets/to-do.png';
 
 export const Todowrapper = () => {
   const [todos, setTodos] = useState([]);
@@ -62,8 +61,7 @@ export const Todowrapper = () => {
     <div className="TodoWrapper">
       <div className="todo-topbar">
         <h1>TO-DO LIST</h1>
-           {/* <img src={logo} alt="logo" className="todo-logo" /> */}
-        <button className="logout-btn" onClick={handleLogout} title="Logout">
+        <button onClick={handleLogout} className="logout-button">
           🔒
         </button>
       </div>

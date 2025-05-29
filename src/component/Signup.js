@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { supabase } from '../supabaseClient';
 import { Link } from 'react-router-dom';
-import '../App.css'; // Or wherever your styles are
+import { supabase } from '../supabaseClient'; // Make sure this is correctly configured
+import '../App.css';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -10,7 +10,13 @@ export default function Signup() {
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    setError(null);
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
     if (error) setError(error.message);
     else alert('Signup successful! Check your email to confirm.');
   };
