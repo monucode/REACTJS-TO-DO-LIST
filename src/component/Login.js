@@ -8,29 +8,44 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [message, setMessage] = useState('');
+  const [todos, setTodos] = useState([]); // Store user's to-do list
+  const [userId, setUserId] = useState(null); // Track logged-in user id
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        setUserId(session.user.id);
         navigate('/todo');
       }
     };
     checkSession();
 
     // Listen for logout events
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
-        // Perform cleanup or session data handling here if needed
-        // Example: console.log('User logged out');
+        // Store todos in Supabase on logout
+        if (userId && todos.length > 0) {
+          await supabase
+            .from('todos')
+            .upsert(
+              todos.map(todo => ({
+                ...todo,
+                user_id: userId
+              })),
+              { onConflict: ['id'] }
+            );
+        }
+        setUserId(null);
+        setTodos([]);
       }
     });
 
     return () => {
       listener?.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, userId, todos]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -48,6 +63,8 @@ export default function Login() {
       // Check if profile exists, if not, create it
       const user = data?.user;
       if (user) {
+        setUserId(user.id);
+        // Check if profile exists
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('id')
@@ -78,6 +95,16 @@ export default function Login() {
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email);
     if (resetError) setError(resetError.message);
     else setMessage('Password reset link sent! Check your email.');
+  };
+
+  // Example UI for adding todos (simple input and list)
+  // You can move this to a separate component if needed
+  const [todoInput, setTodoInput] = useState('');
+  const handleAddTodo = () => {
+    if (todoInput.trim()) {
+      setTodos([...todos, { id: Date.now(), text: todoInput.trim(), completed: false }]);
+      setTodoInput('');
+    }
   };
 
   return (
@@ -116,6 +143,24 @@ export default function Login() {
           New user? <Link to="/signup">Sign Up</Link>
         </p>
       </form>
+      {/* Show todo input if logged in */}
+      {userId && (
+        <div className="todo-section">
+          <h3>Your To-Do List</h3>
+          <input
+            type="text"
+            value={todoInput}
+            onChange={e => setTodoInput(e.target.value)}
+            placeholder="Add a new to-do"
+          />
+          <button type="button" onClick={handleAddTodo}>Add</button>
+          <ul>
+            {todos.map(todo => (
+              <li key={todo.id}>{todo.text}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
