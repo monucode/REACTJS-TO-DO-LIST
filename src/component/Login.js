@@ -18,6 +18,18 @@ export default function Login() {
       }
     };
     checkSession();
+
+    // Listen for logout events
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        // Perform cleanup or session data handling here if needed
+        // Example: console.log('User logged out');
+      }
+    });
+
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleLogin = async (e) => {
@@ -25,7 +37,7 @@ export default function Login() {
     setError('');
     setMessage('');
 
-    const { error: loginError } = await supabase.auth.signInWithPassword({
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -33,6 +45,22 @@ export default function Login() {
     if (loginError) {
       setError('Invalid login credentials');
     } else {
+      // Check if profile exists, if not, create it
+      const user = data?.user;
+      if (user) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile && !profileError) {
+          // Insert new profile
+          await supabase.from('profiles').insert([
+            { id: user.id, email: user.email }
+          ]);
+        }
+      }
       setMessage('Login successful!');
       navigate('/todo');
     }
