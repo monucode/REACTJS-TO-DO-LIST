@@ -6,51 +6,84 @@ import './Auth.css';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const [message, setMessage] = useState('');
-  const [todos, setTodos] = useState([]); // Store user's to-do list
-  const [userId, setUserId] = useState(null); // Track logged-in user id
+  const [error, setError] = useState('');
+  const [todos, setTodos] = useState([]);
+  const [todoInput, setTodoInput] = useState('');
+  const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
 
+  // Check session on mount
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user) {
         setUserId(session.user.id);
+        await fetchTodos(session.user.id);
         navigate('/todo');
       }
     };
     checkSession();
 
-    // Listen for logout events
+    // Auth state change listener (logout cleanup)
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
-        // Store todos in Supabase on logout
-        if (userId && todos.length > 0) {
-          await supabase
-            .from('todos')
-            .upsert(
-              todos.map(todo => ({
-                ...todo,
-                user_id: userId
-              })),
-              { onConflict: ['id'] }
-            );
-        }
         setUserId(null);
         setTodos([]);
+      }
+      if (event === 'SIGNED_IN') {
+        setUserId(session.user.id);
+        await fetchTodos(session.user.id);
       }
     });
 
     return () => {
-      listener?.subscription.unsubscribe();
+      listener.subscription.unsubscribe();
     };
-  }, [navigate, userId, todos]);
+  }, [navigate]);
 
+  // Fetch todos from supabase for the given user id
+  const fetchTodos = async (uid) => {
+    const { data, error } = await supabase
+      .from('todos')
+      .select('*')
+      .eq('user_id', uid)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching todos:', error);
+      return;
+    }
+    setTodos(data || []);
+  };
+
+  // Save todos array to Supabase for current user
+  const saveTodos = async (newTodos) => {
+    if (!userId) return;
+
+    // Upsert todos for the user by todo id
+    const { error } = await supabase.from('todos').upsert(
+      newTodos.map((todo) => ({
+        id: todo.id,
+        user_id: userId,
+        text: todo.text,
+        completed: todo.completed || false,
+        created_at: todo.created_at || new Date().toISOString(),
+      })),
+      { onConflict: 'id' }
+    );
+
+    if (error) {
+      console.error('Error saving todos:', error);
+    }
+  };
+
+  // Login handler
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setMessage('');
 
     const { data, error: loginError } = await supabase.auth.signInWithPassword({
       email,
@@ -58,107 +91,124 @@ export default function Login() {
     });
 
     if (loginError) {
-      setError('Invalid login credentials');
-    } else {
-      // Check if profile exists, if not, create it
-      const user = data?.user;
-      if (user) {
-        setUserId(user.id);
-        // Check if profile exists
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .single();
-
-        if (!profile && !profileError) {
-          // Insert new profile
-          await supabase.from('profiles').insert([
-            { id: user.id, email: user.email }
-          ]);
-        }
-      }
-      setMessage('Login successful!');
+      setError(loginError.message);
+    } else if (data.user) {
+      setUserId(data.user.id);
+      await fetchTodos(data.user.id);
       navigate('/todo');
     }
   };
 
-  const handleResetPassword = async () => {
-    setError('');
-    setMessage('');
+  // Add todo handler
+  const handleAddTodo = async () => {
+    if (!todoInput.trim()) return;
 
-    if (!email) {
-      setError('Please enter your email to reset password.');
-      return;
-    }
+    const newTodo = {
+      id: crypto.randomUUID(),
+      text: todoInput.trim(),
+      completed: false,
+      created_at: new Date().toISOString(),
+      user_id: userId,
+    };
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email);
-    if (resetError) setError(resetError.message);
-    else setMessage('Password reset link sent! Check your email.');
+    const updatedTodos = [...todos, newTodo];
+    setTodos(updatedTodos);
+    setTodoInput('');
+    await saveTodos(updatedTodos);
   };
 
-  // Example UI for adding todos (simple input and list)
-  // You can move this to a separate component if needed
-  const [todoInput, setTodoInput] = useState('');
-  const handleAddTodo = () => {
-    if (todoInput.trim()) {
-      setTodos([...todos, { id: Date.now(), text: todoInput.trim(), completed: false }]);
-      setTodoInput('');
+  // Toggle todo completed status (optional)
+  const toggleTodoCompleted = async (id) => {
+    const updatedTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    );
+    setTodos(updatedTodos);
+    await saveTodos(updatedTodos);
+  };
+
+  // Delete todo handler (optional)
+  const deleteTodo = async (id) => {
+    const { error } = await supabase.from('todos').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting todo:', error);
+      return;
     }
+    const updatedTodos = todos.filter((todo) => todo.id !== id);
+    setTodos(updatedTodos);
   };
 
   return (
     <div className="auth-container">
-      <form onSubmit={handleLogin} className="auth-form">
-        <h2>Login</h2>
+      {!userId ? (
+        <form onSubmit={handleLogin} className="auth-form">
+          <h2>Login</h2>
 
-        {error && <p className="error">{error}</p>}
-        {message && <p className="message">{message}</p>}
+          {error && <p className="error">{error}</p>}
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-        <button type="submit">Log In</button>
+          <button type="submit">Log In</button>
 
-        <p>
-          <button type="button" onClick={handleResetPassword} className="forgot-link">
-            Forgot Password?
-          </button>
-        </p>
-
-        <p>
-          New user? <Link to="/signup">Sign Up</Link>
-        </p>
-      </form>
-      {/* Show todo input if logged in */}
-      {userId && (
+          <p>
+            New user? <Link to="/signup">Sign Up</Link>
+          </p>
+        </form>
+      ) : (
         <div className="todo-section">
           <h3>Your To-Do List</h3>
           <input
             type="text"
             value={todoInput}
-            onChange={e => setTodoInput(e.target.value)}
+            onChange={(e) => setTodoInput(e.target.value)}
             placeholder="Add a new to-do"
           />
-          <button type="button" onClick={handleAddTodo}>Add</button>
+          <button type="button" onClick={handleAddTodo}>
+            Add
+          </button>
+
           <ul>
-            {todos.map(todo => (
-              <li key={todo.id}>{todo.text}</li>
+            {todos.map((todo) => (
+              <li key={todo.id}>
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  onChange={() => toggleTodoCompleted(todo.id)}
+                />
+                <span style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
+                  {todo.text}
+                </span>
+                <button onClick={() => deleteTodo(todo.id)} style={{ marginLeft: '1rem' }}>
+                  Delete
+                </button>
+              </li>
             ))}
           </ul>
+
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              setUserId(null);
+              setTodos([]);
+              navigate('/');
+            }}
+            style={{ marginTop: '2rem' }}
+          >
+            Logout
+          </button>
         </div>
       )}
     </div>
