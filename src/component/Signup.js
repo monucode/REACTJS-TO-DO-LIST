@@ -1,29 +1,24 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { Link } from 'react-router-dom';
+import { supabase } from '../supabaseClient'; // Make sure this is correctly configured
 import '../App.css';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError(null);
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      alert("Signup successful! You can now login.");
-      navigate('/'); // Redirect to login page
-    }
+    if (error) setError(error.message);
+    else alert('Signup successful! continue to login');
   };
 
   return (
@@ -35,14 +30,12 @@ export default function Signup() {
         <input
           type="email"
           placeholder="Email"
-          value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
         <input
           type="password"
           placeholder="Password"
-          value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />

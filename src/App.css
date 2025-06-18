@@ -12,6 +12,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  min-height: 100vh; /* Ensures proper vertical centering */
 }
 
 .App {
@@ -59,28 +60,31 @@ h1 {
   cursor: pointer;
 }
 
+/* ✅ Updated .Todo styles from Todo.js */
 .Todo {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #8758ff;
-  color: #fff;
+  background: #ffffff;
+  color: #111827;
   padding: 0.75rem 1rem;
-  border-radius: 5px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   margin-bottom: 1rem;
+  transition: box-shadow 0.2s ease;
 }
 
-.fa-trash {
-  margin-left: 0.75rem;
+.Todo:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .incompleted {
-  color: #fff;
+  color: #111827;
   cursor: pointer;
 }
 
 .completed {
-  color: #c5aeff;
+  color: #9ca3af;
   text-decoration: line-through;
   cursor: pointer;
 }
@@ -88,4 +92,26 @@ h1 {
 .edit-icon,
 .delete-icon {
   cursor: pointer;
+  color: #4b5563;
+  transition: color 0.2s ease;
+  font-size: 1.1rem;
+  margin-left: 0.5rem;
+}
+
+.edit-icon:hover {
+  color: #3b82f6;
+}
+
+.delete-icon:hover {
+  color: #ef4444;
+}
+
+/* Optional: Add spacing between edit/delete buttons */
+.Todo > div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.fa-trash {
+  margin-left: 0.75rem;
 }
