@@ -1,4 +1,4 @@
-// taskService.ts
+// taskService.js
 import { supabase } from './supabaseClient.js'
 
 export const getTasks = async () => {
