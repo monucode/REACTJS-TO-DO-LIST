@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { supabase } from '../supabaseClient'; // Make sure this is correctly configured
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 import '../App.css';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -17,8 +18,15 @@ export default function Signup() {
       password,
     });
 
-    if (error) setError(error.message);
-    else alert('Signup successful! continue to login');
+    if (error) {
+      setError(error.message);
+    } else {
+      // 🔒 Log out any session just in case (disable auto-login)
+      await supabase.auth.signOut();
+
+      alert('Signup successful! Please login with your credentials.');
+      navigate('/'); // 🔁 Go to login page
+    }
   };
 
   return (

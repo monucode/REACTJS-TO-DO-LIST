@@ -45,6 +45,7 @@ export const Todowrapper = () => {
     navigate("/");
   };
 
+  // ✅ Optimistic Add Todo
   const addTodo = async (task) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -53,22 +54,38 @@ export const Todowrapper = () => {
       return;
     }
 
-    const { data, error } = await supabase.from("todos").insert([
-      {
-        task,
-        completed: false,
-        user_id: user.id,
-      },
-    ]);
+    // Temporary ID and optimistic UI update
+    const tempId = Date.now();
+    const tempTodo = {
+      id: tempId,
+      task,
+      completed: false,
+      user_id: user.id,
+    };
 
-    console.log("Insert response:", { data, error });
+    setTodos((prev) => [...prev, tempTodo]);
+
+    const { data, error } = await supabase
+      .from("todos")
+      .insert([
+        {
+          task,
+          completed: false,
+          user_id: user.id,
+        },
+      ])
+      .select()
+      .single();
 
     if (error) {
       console.error("Error inserting todo:", error.message);
-    } else if (data && data.length > 0) {
-      setTodos([...todos, data[0]]);
+      // Rollback
+      setTodos((prev) => prev.filter((t) => t.id !== tempId));
     } else {
-      console.warn("Insert succeeded but no data returned");
+      // Replace temp todo with actual
+      setTodos((prev) =>
+        prev.map((t) => (t.id === tempId ? data : t))
+      );
     }
   };
 
