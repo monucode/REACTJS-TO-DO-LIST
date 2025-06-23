@@ -1,3 +1,14 @@
+/* Wrapper for the whole todo page */
+.TodoWrapper {
+  max-width: 100%;
+  width: 100%;
+  padding: 1rem;
+  margin: 0 auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Topbar containing title and logout button */
 .todo-topbar {
   display: flex;
   align-items: center;
@@ -8,8 +19,11 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   border-radius: 8px;
   margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
+/* Title styling */
 .todo-topbar h1 {
   font-size: 1.8rem;
   font-weight: 600;
@@ -17,7 +31,8 @@
   margin: 0;
 }
 
-.logout-btn {
+/* Logout button styling */
+.logout-button {
   font-size: 1.25rem;
   background: transparent;
   border: none;
@@ -28,46 +43,42 @@
   border-radius: 6px;
 }
 
-.logout-btn:hover {
+.logout-button:hover {
   transform: scale(1.05);
   background-color: #eff6ff;
   color: #2563eb;
 }
 
-.logo-text {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #3b82f6;
-  flex: 1;
-}
-
-/* .todo-logo {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-} */
-
-/* Responsive Tweaks */
+/* Responsive tweaks for mobile */
 @media (max-width: 600px) {
-  .todo-topbar {
-    /* flex-direction: column; */
-    align-items: flex-start;
-    /* gap: 0.75rem; */
+
+
+  .logout-button {
+    align-self: center;
+    font-size: 1.2rem;
   }
 
-  /* .todo-topbar h1 {
-    font-size: 0.5rem;
-  } */
-
-  .logout-btn {
-    align-self: flex-end;
-    font-size: 1.1rem;
+  .TodoForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
-  .logo-text {
-    font-size: 2.25rem;
+  .todo-input {
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+    margin-bottom: 0.4rem;
+  }
+
+  .todo-btn {
+    width: 100%;
+    max-width: 300px;
+    margin-top: 0;
+  }
+
+  .Todo {
+    width: 100%;
+    word-wrap: break-word;
   }
 }

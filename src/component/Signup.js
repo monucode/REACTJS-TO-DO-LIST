@@ -9,9 +9,20 @@ export default function Signup() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // Check if email ends with '@gmail.com'
+  const isValidGmail = (email) => {
+    return email.toLowerCase().endsWith('@gmail.com');
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
     setError(null);
+
+    // Check for gmail.com domain strictly
+    if (!isValidGmail(email)) {
+      setError('Please enter a valid Gmail address ending with @gmail.com');
+      return;
+    }
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -21,11 +32,9 @@ export default function Signup() {
     if (error) {
       setError(error.message);
     } else {
-      // 🔒 Log out any session just in case (disable auto-login)
       await supabase.auth.signOut();
-
-      alert('Signup successful! Please login with your credentials.');
-      navigate('/'); // 🔁 Go to login page
+      alert('Signup successful! Please login with your Gmail credentials.');
+      navigate('/');
     }
   };
 
@@ -37,13 +46,15 @@ export default function Signup() {
 
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Email (must be Gmail)"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
         <input
           type="password"
           placeholder="Password"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
