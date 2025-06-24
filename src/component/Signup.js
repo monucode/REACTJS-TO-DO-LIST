@@ -9,18 +9,18 @@ export default function Signup() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Check if email ends with '@gmail.com'
-  const isValidGmail = (email) => {
-    return email.toLowerCase().endsWith('@gmail.com');
+  // ✅ Email format validation using regex
+  const isValidEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+    return regex.test(email);
   };
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError(null);
 
-    // Check for gmail.com domain strictly
-    if (!isValidGmail(email)) {
-      setError('Please enter a valid Gmail address ending with @gmail.com');
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address (e.g., example@gmail.com)');
       return;
     }
 
@@ -32,9 +32,10 @@ export default function Signup() {
     if (error) {
       setError(error.message);
     } else {
+      // Optional: sign out to force login after signup
       await supabase.auth.signOut();
-      alert('Signup successful! Please login with your Gmail credentials.');
-      navigate('/');
+      alert('Signup successful! Please login.');
+      navigate('/'); // Redirect to login page
     }
   };
 
@@ -46,7 +47,7 @@ export default function Signup() {
 
         <input
           type="email"
-          placeholder="Email (must be Gmail)"
+          placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -59,6 +60,7 @@ export default function Signup() {
           required
         />
         <button type="submit">Sign Up</button>
+
         <p style={{ marginTop: '1rem', textAlign: 'center' }}>
           Already have an account?{' '}
           <Link to="/" style={{ color: '#3b82f6', textDecoration: 'none' }}>
