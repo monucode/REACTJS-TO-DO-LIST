@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "build"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "ALLOWALL"
+    Content-Security-Policy = "frame-ancestors 'self' https://trello.com https://*.trello.com;"
