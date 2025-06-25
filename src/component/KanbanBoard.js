@@ -1,95 +1,126 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { supabase } from '../supabaseClient';
+import './KanbanBoard.css';
 
-const columnsFromBackend = {
-  todo: { name: '📝 To Do', items: [] },
-  inprogress: { name: '🚧 In Progress', items: [] },
-  done: { name: '✅ Done', items: [] }
+const columnsStore = {
+  todo: { name: 'To Do', items: [] },
+  inprogress: { name: 'In Progress', items: [] },
+  done: { name: 'Done', items: [] }
 };
 
 export default function KanbanBoard() {
-  const [columns, setColumns] = useState(columnsFromBackend);
+  const [columns, setColumns] = useState(columnsStore);
+  const [loading, setLoading] = useState(true);
 
-  const fetchTasks = async () => {
-    const { data, error } = await supabase
-      .from('todos')
-      .select('*')
-      .order('created_at', { ascending: true });
-
-    if (!error) {
-      setColumns({
-        todo: { ...columnsFromBackend.todo, items: data.filter((t) => t.status === 'todo') },
-        inprogress: { ...columnsFromBackend.inprogress, items: data.filter((t) => t.status === 'inprogress') },
-        done: { ...columnsFromBackend.done, items: data.filter((t) => t.status === 'done') }
-      });
-    }
-  };
-
+  /*--------------------------------------------------*
+   | 🗂  FETCH from Supabase once on mount            |
+   *--------------------------------------------------*/
   useEffect(() => {
-    fetchTasks();
+    (async () => {
+      const { data, error } = await supabase.from('todos').select('*').order('created_at');
+      if (!error && data) {
+        setColumns({
+          todo: { ...columnsStore.todo, items: data.filter((t) => t.status === 'todo') },
+          inprogress: { ...columnsStore.inprogress, items: data.filter((t) => t.status === 'inprogress') },
+          done: { ...columnsStore.done, items: data.filter((t) => t.status === 'done') }
+        });
+      }
+      setLoading(false);
+    })();
   }, []);
 
-  const onDragEnd = async (result) => {
-    if (!result.destination) return;
-
+  /*--------------------------------------------------*
+   | ✋  DRAG logic                                   |
+   *--------------------------------------------------*/
+  const onDragEnd = useCallback(async (result) => {
     const { source, destination } = result;
-    const sourceCol = columns[source.droppableId];
-    const destCol = columns[destination.droppableId];
-    const draggedItem = sourceCol.items[source.index];
+    if (!destination) return;
 
-    const newSourceItems = [...sourceCol.items];
-    newSourceItems.splice(source.index, 1);
-    const newDestItems = [...destCol.items];
-    newDestItems.splice(destination.index, 0, draggedItem);
+    // 1️⃣ Item did not move anywhere
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    )
+      return;
 
-    const newColumns = {
+    // 2️⃣ Copy data for mutation
+    const sourceClone = Array.from(columns[source.droppableId].items);
+    const destClone = Array.from(columns[destination.droppableId].items);
+    const [movedItem] = sourceClone.splice(source.index, 1);
+
+    // 3️⃣ Insert into destination list
+    destClone.splice(destination.index, 0, movedItem);
+
+    // 4️⃣ Build new state
+    const newState = {
       ...columns,
-      [source.droppableId]: { ...sourceCol, items: newSourceItems },
-      [destination.droppableId]: { ...destCol, items: newDestItems }
+      [source.droppableId]: {
+        ...columns[source.droppableId],
+        items: sourceClone
+      },
+      [destination.droppableId]: {
+        ...columns[destination.droppableId],
+        items: destClone
+      }
     };
+    setColumns(newState);
 
-    setColumns(newColumns);
+    // 5️⃣ Persist to Supabase in background
+    if (source.droppableId !== destination.droppableId) {
+      await supabase.from('todos').update({ status: destination.droppableId }).eq('id', movedItem.id);
+    }
+  }, [columns]);
 
-    await supabase.from('todos').update({ status: destination.droppableId }).eq('id', draggedItem.id);
-  };
+  /*--------------------------------------------------*
+   | 🔄  RENDER                                       |
+   *--------------------------------------------------*/
+  if (loading) {
+    return (
+      <div className="loader-wrapper">
+        <div className="loader" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 p-10">
-      <h1 className="text-4xl font-bold text-white text-center mb-10 drop-shadow-md">Kanban Task Board</h1>
+    <div className="board-wrapper">
+      <h1 className="board-title">Kanban Task Board</h1>
+
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {Object.entries(columns).map(([columnId, column]) => (
-            <Droppable droppableId={columnId} key={columnId}>
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="bg-white rounded-3xl p-6 shadow-2xl border-t-8 border-indigo-500"
-                >
-                  <h2 className="text-2xl font-semibold mb-6 text-indigo-700 flex items-center gap-2">
-                    {column.name}
-                  </h2>
-                  <div className="space-y-4">
-                    {column.items.map((item, index) => (
-                      <Draggable key={item.id.toString()} draggableId={item.id.toString()} index={index}>
-                        {(provided) => (
-                          <div
+        <div className="columns">
+          {Object.entries(columns).map(([colId, col]) => (
+            <div key={colId} className="column">
+              <header className="column-header">{col.name}</header>
+
+              {/* Each scrollable list is its own Droppable (important for smooth hit‑testing) */}
+              <Droppable droppableId={colId}>
+                {(provided, snapshot) => (
+                  <ul
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`task-list ${snapshot.isDraggingOver ? 'task-list--active' : ''}`}
+                  >
+                    {col.items.map((task, idx) => (
+                      <Draggable key={task.id} draggableId={task.id.toString()} index={idx}>
+                        {(provided, snapshot) => (
+                          <li
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="bg-gray-100 border-l-4 border-indigo-500 rounded-xl p-4 text-sm font-medium text-gray-800 shadow-sm hover:shadow-md transition duration-200"
+                            className={`task-card ${snapshot.isDragging ? 'task-card--dragging' : ''}`}
+                            style={{ ...provided.draggableProps.style }}
                           >
-                            {item.task}
-                          </div>
+                            {task.task}
+                          </li>
                         )}
                       </Draggable>
                     ))}
                     {provided.placeholder}
-                  </div>
-                </div>
-              )}
-            </Droppable>
+                  </ul>
+                )}
+              </Droppable>
+            </div>
           ))}
         </div>
       </DragDropContext>
