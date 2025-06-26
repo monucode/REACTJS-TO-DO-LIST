@@ -147,6 +147,11 @@ export const Todowrapper = () => {
     <div className="TodoWrapper">
       <div className="todo-topbar">
         <h1>TO-DO LIST</h1>
+         {/* ✅ Kanban toggle added here */}
+        <button
+          className="kanban-toggle"
+          onClick={() => navigate("/kanban")}
+        > kanbanView</button>
         <button onClick={handleLogout} className="logout-button">
           🔒
         </button>

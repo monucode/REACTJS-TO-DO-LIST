@@ -79,6 +79,24 @@ body{
 }
 @keyframes spin{to{transform:rotate(360deg);}}
 
+.kanban-toggle {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-right: 0.5rem;
+}
+
+.kanban-toggle:hover {
+  background-color: #1565c0;
+}
+
+
 /* ---------- Responsive ---------- */
 /* ≤ 640 px → two boxes per row, no side‑scroll */
 @media(max-width:640px){
