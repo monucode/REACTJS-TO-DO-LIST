@@ -151,7 +151,7 @@ export const Todowrapper = () => {
         <button
           className="kanban-toggle"
           onClick={() => navigate("/kanban")}
-        > kanbanView</button>
+        > kanban</button>
         <button onClick={handleLogout} className="logout-button">
           🔒
         </button>

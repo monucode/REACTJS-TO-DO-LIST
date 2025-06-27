@@ -1,84 +1,252 @@
-/* Wrapper for the whole todo page */
+/* ---------- global canvas ---------- */
+/* -------- center the TodoWrapper card -------- */
+body, #root {          /* #root = React mount div */
+  display: flex;
+  justify-content: center;   /* X‑axis center */
+  align-items: center;       /* Y‑axis center */
+  min-height: 100vh;         /* take full viewport height */
+  margin: 0;                 /* no scroll gap */
+}
+
+/* TodoWrapper card — margin‑top hatake thoda padding adjust */
 .TodoWrapper {
-  max-width: 100%;
+  max-width: 640px;
   width: 100%;
-  padding: 1rem;
-  margin: 0 auto;
-  overflow-x: hidden;
+  padding: 28px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
   box-sizing: border-box;
 }
 
-/* Topbar containing title and logout button */
+
+
+
+/* ---------- top‑bar inside card ---------- */
 .todo-topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  padding: 1rem 1.5rem;
-  background-color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  border-radius: 8px;
-  margin-bottom: 20px;
-  width: 100%;
-  box-sizing: border-box;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-/* Title styling */
 .todo-topbar h1 {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #1e293b;
+  flex: 1;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #121331;
   margin: 0;
 }
 
-/* Logout button styling */
+/* kanban switch */
+.kanban-toggle {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+
+.kanban-toggle:hover {
+  background: #1565c0;
+}
+
+/* logout icon */
 .logout-button {
-  font-size: 1.25rem;
-  background: transparent;
+  font-size: 1.6rem;
+  background: none;
   border: none;
   cursor: pointer;
-  color: #3b82f6;
-  transition: all 0.2s ease;
-  padding: 0.5rem;
-  border-radius: 6px;
+  padding: 6px;
+  line-height: 1;
+  border-radius: 8px;
+  transition: background 0.15s ease;
 }
 
 .logout-button:hover {
-  transform: scale(1.05);
-  background-color: #eff6ff;
-  color: #2563eb;
+  background: #f1f5ff;
 }
 
-/* Responsive tweaks for mobile */
+/* ---------- add‑todo form ---------- */
+.todo-form {
+  display: flex;
+  margin-bottom: 24px;
+}
+
+.todo-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px 0 0 8px;
+  background: #f5f7fb;
+  font-size: 1rem;
+  outline: none;
+  color:#121331;
+}
+
+.todo-input::placeholder {
+  color: #9ca3af;        /* soft grey */
+  opacity: 1;            /* fully opaque (override browser default) */
+  font-size: 0.95rem;    /* slightly smaller than main text */
+}
+.todo-btn {
+  background: #b84af7;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0 8px 8px 0;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.todo-btn:hover {
+  background: #a33fe0;
+}
+
+/* ---------- individual task row ---------- */
+.task-item,
+.todo-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #121331;
+}
+
+/* edit & delete icons */
+.task-actions button {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  margin-left: 10px;
+  line-height: 1;
+}
+
+/* ---------- status badge (red / orange / green) ---------- */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* ---------- mobile tweaks ---------- */
 @media (max-width: 600px) {
-
-
-  .logout-button {
-    align-self: center;
-    font-size: 1.2rem;
+  .TodoWrapper {
+    margin-top: 24px;
+    padding: 20px;
+    overflow-x: hidden;
   }
 
-  .TodoForm {
-    display: flex;
+  .todo-topbar h1 {
+    font-size: 1.6rem;
+  }
+
+  .todo-form {
     flex-direction: column;
-    align-items: center;
   }
 
-  .todo-input {
+  .todo-input,
+  .todo-btn {
     width: 100%;
-    max-width: 300px;
-    text-align: center;
-    margin-bottom: 0.4rem;
+    border-radius: 8px;
   }
 
   .todo-btn {
-    width: 100%;
-    max-width: 300px;
-    margin-top: 0;
+    margin-top: 1px;
+  }
+}
+
+
+/* ---------- TOP‑BAR OVERRIDES ---------- */
+.kanban-topbar {
+  background: transparent !important;   /* remove white strip */
+  box-shadow: none !important;          /* remove shadow */
+  padding: 16px 20px;
+  position: relative;
+  display: flex;
+  justify-content: center;              /* keep title visually centered */
+  align-items: center;
+}
+
+/* center heading, white & bold */
+.kanban-topbar .board-title {
+  color: #ffffff !important;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* button group keeps right alignment on desktop */
+.topbar-actions {
+  position: absolute;
+  right: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.list-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  background-color: transparent;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 0.5px solid #ffffff;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.25s ease-in-out;
+  text-transform: capitalize;
+}
+
+.list-toggle:hover,
+.list-toggle:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+  outline: none;
+}
+
+.list-toggle:active {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(0.98);
+}
+
+
+/* logout icon—2 px fine‑tune gap */
+.logout-button {
+  margin-left: 2px;
+  color: #ffffff;                       /* icon white */
+}
+
+/* ---------- RESPONSIVE (<600 px) ---------- */
+@media (max-width: 600px) {
+  .kanban-topbar {
+    flex-direction: column;
+    gap: 12px;
   }
 
-  .Todo {
-    width: 100%;
-    word-wrap: break-word;
+  .topbar-actions {
+    position: static;                   /* stack below title */
+    right: auto;
+  }
+
+  .kanban-topbar .board-title {
+    font-size: 1.6rem;                  /* slightly smaller */
+    text-align: center;
   }
 }
