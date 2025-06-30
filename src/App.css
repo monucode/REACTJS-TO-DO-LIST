@@ -1,3 +1,8 @@
+/* ========================================================================
+   🌟  GLOBAL + TODO BADGE STYLES  (single CSS file — copy-paste as-is)
+   ======================================================================== */
+
+/* ---------- base reset / font ---------- */
 @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 
 * {
@@ -5,7 +10,6 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-
 }
 
 body {
@@ -13,20 +17,19 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh; /* Ensures proper vertical centering */
-    overflow-x: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;              /* stop sideways scroll */
 }
 
-.App {
-  text-align: center;
-}
+.App { text-align: center; }
 
 h1 {
   color: #fff;
-  margin-bottom: 0.5rem;
+  margin-bottom: .5rem;
   font-size: 1.75rem;
 }
 
+/* ---------- wrapper & form ---------- */
 .TodoWrapper {
   background: #1A1A40;
   margin-top: 5rem;
@@ -34,86 +37,90 @@ h1 {
   border-radius: 5px;
 }
 
-.TodoForm {
-  width: 100%;
-  margin-bottom: 1rem;
-}
+.TodoForm { width: 100%; margin-bottom: 1rem; }
 
 .todo-input {
   outline: none;
   background: none;
   border: 1px solid #8758ff;
-  padding: 0.5rem 1rem;
-  margin-top: 1rem;
-  margin-bottom: 2rem;
+  padding: .5rem 1rem;
+  margin: 1rem 0 2rem;
   width: 300px;
   color: #fff;
 }
 
-.todo-input::placeholder {
-  color: #ffffff4d;
-}
+.todo-input::placeholder { color:#ffffff4d; }
 
 .todo-btn {
   background: #8758ff;
   color: #fff;
   border: none;
-  padding: 0.55rem;
+  padding: .55rem;
   cursor: pointer;
 }
 
-/* ✅ Updated .Todo styles from Todo.js */
+/* ========================================================================
+   📝  INDIVIDUAL TASK CARD  +  STATUS BADGE
+   ======================================================================== */
 .Todo {
+  position: relative;                 /* ⭐ badge attaches here */
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: #ffffff;
   color: #111827;
-  padding: 0.75rem 1rem;
+  padding: .75rem 1rem;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   margin-bottom: 1rem;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow .2s ease;
+
+  /* long text never breaks layout */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
-.Todo:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
+.Todo:hover { box-shadow: 0 2px 8px rgba(0,0,0,.05); }
 
-.incompleted {
-  color: #111827;
-  cursor: pointer;
-}
+.incompleted { color:#111827; cursor:pointer; }
+.completed    { color:#9ca3af; text-decoration:line-through; cursor:pointer; }
 
-.completed {
-  color: #9ca3af;
-  text-decoration: line-through;
-  cursor: pointer;
-}
-
+/* ---- edit / delete icons ---- */
 .edit-icon,
 .delete-icon {
   cursor: pointer;
   color: #4b5563;
-  transition: color 0.2s ease;
+  transition: color .2s ease;
   font-size: 1.1rem;
-  margin-left: 0.5rem;
+  margin-left: .5rem;
 }
+.edit-icon:hover   { color:#3b82f6; }
+.delete-icon:hover { color:#ef4444; }
 
-.edit-icon:hover {
-  color: #3b82f6;
-}
+.Todo > div { display:flex; gap:.5rem; }
+.fa-trash   { margin-left:.75rem; }
 
-.delete-icon:hover {
-  color: #ef4444;
-}
-
-/* Optional: Add spacing between edit/delete buttons */
-.Todo > div {
+/* ---------- STATUS BADGE (YouTube-like bubble) ---------- */
+/* ⬅️ Badge ko left side mein shift karne ke liye update yeh karo */
+.status-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;        /* 👈 yeh add karo */
+  right: auto;       /* ✅ right ko override karo agar defined ho */
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: #fff;
+  box-shadow: 0 0 0 2px #fff;
 }
 
-.fa-trash {
-  margin-left: 0.75rem;
-}
+
+/* colour-coding based on parent status-* class */
+.status-todo       .status-badge { background:#fbbf24; } /* amber */
+.status-inprogress .status-badge { background:#3b82f6; } /* blue  */
+.status-done       .status-badge { background:#22c55e; } /* green */
