@@ -1,6 +1,6 @@
-/* ==========================================================================
+/* ==================================================================
    📋  TODO WRAPPER  —  REFACTORED + MOBILE-READY + BACK-BUTTON
-   ========================================================================== */
+   ================================================================== */
 
 /* ---------- global canvas ---------- */
 body,
@@ -12,7 +12,7 @@ body,
   margin: 0;
 }
 
-/* ---------- card ---------- */
+/* ---------- wrapper card ---------- */
 .TodoWrapper {
   max-width: 640px;
   width: 100%;
@@ -23,13 +23,12 @@ body,
   box-sizing: border-box;
 }
 
-/* ==========================================================================
+/* ==================================================================
    🟣  TOP-BAR
-   ========================================================================== */
+   ================================================================== */
 .todo-topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* ← even spacing */
   gap: 12px;
   margin-bottom: 24px;
 }
@@ -51,14 +50,20 @@ body,
 }
 
 /* heading */
-.todo-heading,
-.todo-topbar h1 {
+.todo-heading {
   flex: 1;
   font-size: 2rem;
   font-weight: 700;
   color: #121331;
   margin: 0;
   text-align: center;
+}
+
+/* right-side wrapper */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 /* kanban toggle */
@@ -77,24 +82,38 @@ body,
   background: #1565c0;
 }
 
-/* logout icon (used elsewhere) */
+/* logout button */
 .logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.6rem;
+  color: #121331 !important;          /* base color */
   background: none;
   border: none;
   cursor: pointer;
   padding: 6px;
   line-height: 1;
   border-radius: 8px;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, transform 0.1s ease;
 }
 .logout-button:hover {
   background: #f1f5ff;
 }
+.logout-button:active {
+  transform: scale(0.95);
+}
 
-/* ==========================================================================
+/* 🖌️  force Feather SVG stroke so icon ALWAYS visible */
+.logout-button svg {
+  stroke: #121331 !important;
+  width: 1.4em;
+  height: 1.4em;
+}
+
+/* ==================================================================
    ➕  ADD-TODO FORM
-   ========================================================================== */
+   ================================================================== */
 .todo-form {
   display: flex;
   margin-bottom: 24px;
@@ -129,9 +148,9 @@ body,
   background: #a33fe0;
 }
 
-/* ==========================================================================
+/* ==================================================================
    📑  TASK CARD
-   ========================================================================== */
+   ================================================================== */
 .task-item,
 .todo-card {
   display: flex;
@@ -145,14 +164,11 @@ body,
   font-size: 1.05rem;
   font-weight: 500;
   color: #121331;
-
-  /* wrap long words/URLs */
   overflow-wrap: anywhere;
   word-break: break-word;
   white-space: pre-wrap;
 }
 
-/* edit & delete icons */
 .task-actions button {
   background: none;
   border: none;
@@ -162,18 +178,9 @@ body,
   line-height: 1;
 }
 
-/* status badge (if used) */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-/* ==========================================================================
-   📱  MOBILE  (≤ 600 px)
-   ========================================================================== */
+/* ==================================================================
+   📱  MOBILE (≤ 600 px)
+   ================================================================== */
 @media (max-width: 600px) {
   .TodoWrapper {
     margin-top: 24px;
@@ -181,23 +188,20 @@ body,
     overflow-x: hidden;
   }
 
-  /* top-bar rearrange */
   .todo-topbar {
     flex-wrap: wrap;
   }
-  .todo-heading,
-  .todo-topbar h1 {
+  .todo-heading {
     order: 2;
     width: 100%;
     font-size: 1.6rem;
     margin-top: 4px;
   }
   .back-button,
-  .kanban-toggle {
+  .topbar-actions {
     order: 1;
   }
 
-  /* form vertical */
   .todo-form {
     flex-direction: column;
   }
@@ -210,7 +214,6 @@ body,
     margin-top: 4px;
   }
 
-  /* card tighter */
   .task-item,
   .todo-card {
     font-size: 0.95rem;

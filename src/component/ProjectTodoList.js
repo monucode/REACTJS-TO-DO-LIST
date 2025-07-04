@@ -1,11 +1,15 @@
-// src/component/ProjectTodoList.js
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
+/* child components */
 import { Todo } from "./Todo";
 import { TodoForm } from "./TodoForm";
 import { EditTodoForm } from "./EditTodoForm";
+
+/* icon (Feather-icons via react-icons) */
+import { FiLogOut } from "react-icons/fi";
+
 import "./Todowrapper.css";
 
 export default function ProjectTodoList() {
@@ -13,18 +17,17 @@ export default function ProjectTodoList() {
   const [todos, setTodos] = useState([]);
   const navigate = useNavigate();
 
-  /* ─── session check + first fetch ─── */
+  /* ── session check + first fetch ── */
   useEffect(() => {
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return navigate("/");
-
+      if (!session) return navigate("/login", { replace: true });
       fetchTodos();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
-  /* ─── fetch helper ─── */
+  /* fetch todos for this project */
   const fetchTodos = async () => {
     const { data, error } = await supabase
       .from("todos")
@@ -34,9 +37,13 @@ export default function ProjectTodoList() {
     if (!error) setTodos(data || []);
   };
 
-  /* ─────────────────────────────────────────────────────────
-     CRUD helpers — project_id हमेशा भेजना ज़रूरी
-  ───────────────────────────────────────────────────────── */
+  /* logout */
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login", { replace: true });
+  };
+
+  /* ── CRUD helpers ── */
   const addTodo = async (task) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -46,9 +53,7 @@ export default function ProjectTodoList() {
 
     const { data, error } = await supabase
       .from("todos")
-      .insert([
-        { task, completed: false, user_id: user.id, project_id: projectId }
-      ])
+      .insert([{ task, completed: false, user_id: user.id, project_id: projectId }])
       .select()
       .single();
 
@@ -87,11 +92,12 @@ export default function ProjectTodoList() {
     }
   };
 
-  /* ─── UI ─── */
+  /* ── UI ── */
   return (
     <div className="TodoWrapper">
-      {/* top-bar */}
+      {/* TOP BAR */}
       <div className="todo-topbar">
+        {/* back */}
         <button
           className="back-button"
           onClick={() => navigate("/projects")}
@@ -100,17 +106,28 @@ export default function ProjectTodoList() {
           ←
         </button>
 
-        <h1 className="todo-heading">{`Project · ${projectId.slice(0, 6)}…`}</h1>
+        {/* heading */}
+        <h1 className="todo-heading">TO-DO LIST</h1>
 
-        <button
-          className="kanban-toggle"
-          onClick={() => navigate(`/projects/${projectId}/kanban`)}
-        >
-          Kanban
-        </button>
+        {/* right-side buttons */}
+        <div className="topbar-actions">
+          <button
+            className="kanban-toggle"
+            onClick={() => navigate(`/projects/${projectId}/kanban`)}
+          >
+            Kanban
+          </button>
+          <button
+            className="logout-button"
+            onClick={handleLogout}
+            title="Logout"
+          >
+            <FiLogOut />
+          </button>
+        </div>
       </div>
 
-      {/* add form + list */}
+      {/* form + list */}
       <TodoForm addTodo={addTodo} />
 
       {todos.map(todo =>
