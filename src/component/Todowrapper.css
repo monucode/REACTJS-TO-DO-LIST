@@ -1,44 +1,67 @@
+/* ==========================================================================
+   📋  TODO WRAPPER  —  REFACTORED + MOBILE-READY + BACK-BUTTON
+   ========================================================================== */
+
 /* ---------- global canvas ---------- */
-/* -------- center the TodoWrapper card -------- */
-body, #root {          /* #root = React mount div */
+body,
+#root {
   display: flex;
-  justify-content: center;   /* X‑axis center */
-  align-items: center;       /* Y‑axis center */
-  min-height: 100vh;         /* take full viewport height */
-  margin: 0;                 /* no scroll gap */
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
 }
 
-/* TodoWrapper card — margin‑top hatake thoda padding adjust */
+/* ---------- card ---------- */
 .TodoWrapper {
   max-width: 640px;
   width: 100%;
   padding: 28px;
   background: #ffffff;
   border-radius: 20px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.12);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
   box-sizing: border-box;
 }
 
-
-
-
-/* ---------- top‑bar inside card ---------- */
+/* ==========================================================================
+   🟣  TOP-BAR
+   ========================================================================== */
 .todo-topbar {
   display: flex;
   align-items: center;
+  justify-content: space-between; /* ← even spacing */
   gap: 12px;
   margin-bottom: 24px;
 }
 
+/* back arrow */
+.back-button {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #4b5563;
+  padding: 4px 6px;
+  transition: background 0.2s;
+}
+.back-button:hover {
+  background: #f3f4f6;
+  border-radius: 8px;
+}
+
+/* heading */
+.todo-heading,
 .todo-topbar h1 {
   flex: 1;
   font-size: 2rem;
   font-weight: 700;
   color: #121331;
   margin: 0;
+  text-align: center;
 }
 
-/* kanban switch */
+/* kanban toggle */
 .kanban-toggle {
   background: #1976d2;
   color: #fff;
@@ -50,12 +73,11 @@ body, #root {          /* #root = React mount div */
   cursor: pointer;
   transition: background-color 0.25s ease;
 }
-
 .kanban-toggle:hover {
   background: #1565c0;
 }
 
-/* logout icon */
+/* logout icon (used elsewhere) */
 .logout-button {
   font-size: 1.6rem;
   background: none;
@@ -66,17 +88,17 @@ body, #root {          /* #root = React mount div */
   border-radius: 8px;
   transition: background 0.15s ease;
 }
-
 .logout-button:hover {
   background: #f1f5ff;
 }
 
-/* ---------- add‑todo form ---------- */
+/* ==========================================================================
+   ➕  ADD-TODO FORM
+   ========================================================================== */
 .todo-form {
   display: flex;
   margin-bottom: 24px;
 }
-
 .todo-input {
   flex: 1;
   padding: 12px 16px;
@@ -85,13 +107,12 @@ body, #root {          /* #root = React mount div */
   background: #f5f7fb;
   font-size: 1rem;
   outline: none;
-  color:#121331;
+  color: #121331;
 }
-
 .todo-input::placeholder {
-  color: #9ca3af;        /* soft grey */
-  opacity: 1;            /* fully opaque (override browser default) */
-  font-size: 0.95rem;    /* slightly smaller than main text */
+  color: #9ca3af;
+  opacity: 1;
+  font-size: 0.95rem;
 }
 .todo-btn {
   background: #b84af7;
@@ -104,12 +125,13 @@ body, #root {          /* #root = React mount div */
   cursor: pointer;
   transition: background 0.25s ease;
 }
-
 .todo-btn:hover {
   background: #a33fe0;
 }
 
-/* ---------- individual task row ---------- */
+/* ==========================================================================
+   📑  TASK CARD
+   ========================================================================== */
 .task-item,
 .todo-card {
   display: flex;
@@ -123,6 +145,11 @@ body, #root {          /* #root = React mount div */
   font-size: 1.05rem;
   font-weight: 500;
   color: #121331;
+
+  /* wrap long words/URLs */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 /* edit & delete icons */
@@ -135,7 +162,7 @@ body, #root {          /* #root = React mount div */
   line-height: 1;
 }
 
-/* ---------- status badge (red / orange / green) ---------- */
+/* status badge (if used) */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -144,7 +171,9 @@ body, #root {          /* #root = React mount div */
   font-size: 0.9rem;
 }
 
-/* ---------- mobile tweaks ---------- */
+/* ==========================================================================
+   📱  MOBILE  (≤ 600 px)
+   ========================================================================== */
 @media (max-width: 600px) {
   .TodoWrapper {
     margin-top: 24px;
@@ -152,101 +181,39 @@ body, #root {          /* #root = React mount div */
     overflow-x: hidden;
   }
 
+  /* top-bar rearrange */
+  .todo-topbar {
+    flex-wrap: wrap;
+  }
+  .todo-heading,
   .todo-topbar h1 {
+    order: 2;
+    width: 100%;
     font-size: 1.6rem;
+    margin-top: 4px;
+  }
+  .back-button,
+  .kanban-toggle {
+    order: 1;
   }
 
+  /* form vertical */
   .todo-form {
     flex-direction: column;
   }
-
   .todo-input,
   .todo-btn {
     width: 100%;
     border-radius: 8px;
   }
-
   .todo-btn {
-    margin-top: 1px;
-  }
-}
-
-
-/* ---------- TOP‑BAR OVERRIDES ---------- */
-.kanban-topbar {
-  background: transparent !important;   /* remove white strip */
-  box-shadow: none !important;          /* remove shadow */
-  padding: 16px 20px;
-  position: relative;
-  display: flex;
-  justify-content: center;              /* keep title visually centered */
-  align-items: center;
-}
-
-/* center heading, white & bold */
-.kanban-topbar .board-title {
-  color: #ffffff !important;
-  font-weight: 700;
-  margin: 0;
-}
-
-/* button group keeps right alignment on desktop */
-.topbar-actions {
-  position: absolute;
-  right: 20px;
-  display: flex;
-  align-items: center;
-}
-
-.list-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 16px;
-  background-color: transparent;
-  color: #ffffff;
-  font-weight: 600;
-  font-size: 0.95rem;
-  border: 0.5px solid #ffffff;
-  border-radius: 15px;
-  cursor: pointer;
-  transition: all 0.25s ease-in-out;
-  text-transform: capitalize;
-}
-
-.list-toggle:hover,
-.list-toggle:focus {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: #ffffff;
-  outline: none;
-}
-
-.list-toggle:active {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: scale(0.98);
-}
-
-
-/* logout icon—2 px fine‑tune gap */
-.logout-button {
-  margin-left: 2px;
-  color: #ffffff;                       /* icon white */
-}
-
-/* ---------- RESPONSIVE (<600 px) ---------- */
-@media (max-width: 600px) {
-  .kanban-topbar {
-    flex-direction: column;
-    gap: 12px;
+    margin-top: 4px;
   }
 
-  .topbar-actions {
-    position: static;                   /* stack below title */
-    right: auto;
-  }
-
-  .kanban-topbar .board-title {
-    font-size: 1.6rem;                  /* slightly smaller */
-    text-align: center;
+  /* card tighter */
+  .task-item,
+  .todo-card {
+    font-size: 0.95rem;
+    padding: 12px 14px;
   }
 }

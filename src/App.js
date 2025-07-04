@@ -1,22 +1,37 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './component/Login';
-import Signup from './component/Signup';  
-import { Todowrapper } from './component/Todowrapper';
-import KanbanBoard from './component/KanbanBoard';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
+/* -- auth pages -- */
+import Login   from "./component/Login";
+import Signup  from "./component/Signup";
+
+/* -- single-user legacy pages (optional) -- */
+import { Todowrapper } from "./component/Todowrapper";
+import KanbanBoard     from "./component/KanbanBoard";
+
+/* -- new multi-project pages -- */
+import ProjectList      from "./component/ProjectList";
+import ProjectTodoList  from "./component/ProjectTodoList";
+import ProjectKanban    from "./component/ProjectKanban";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/todo" element={<Todowrapper />} />
-        <Route path="/kanban" element={<KanbanBoard />} /> 
+        {/* auth routes */}
+        <Route path="/"        element={<Login />} />
+        <Route path="/signup"  element={<Signup />} />
+
+        {/* project workflow */}
+        <Route path="/projects"            element={<ProjectList />} />
+        <Route path="/projects/:id/list"   element={<ProjectTodoList />} />
+        <Route path="/projects/:id/kanban" element={<ProjectKanban />} />
+
+        {/* legacy single-user paths (keep or remove) */}
+        <Route path="/todo"   element={<Todowrapper />} />
+        <Route path="/kanban" element={<KanbanBoard />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-

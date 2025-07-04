@@ -1,97 +1,86 @@
+// src/component/KanbanBoard.js
 import React, { useEffect, useState, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import "./KanbanBoard.css";
 
+/* column skeleton */
 const columnsStore = {
-  todo: { name: "To Do", items: [] },
+  todo:       { name: "To Do",       items: [] },
   inprogress: { name: "In Progress", items: [] },
-  done: { name: "Done", items: [] },
+  done:       { name: "Done",        items: [] },
 };
 
-export default function KanbanBoard() {
+/**
+ * Props (all optional for backward-compat):
+ *   ▸ projectId : uuid  – per-project mode if provided
+ *   ▸ onBack()  : func  – top-bar back button handler
+ */
+export default function KanbanBoard({ projectId = null, onBack = null }) {
   const [columns, setColumns] = useState(columnsStore);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  /*--------------------------------------------------*
-   | 🗂  FETCH once on mount                           |
-   *--------------------------------------------------*/
+  /* ---------------- fetch once (or when projectId changes) ---------------- */
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("todos")
         .select("*")
         .order("created_at");
-      if (!error && data) {
+
+      if (projectId) query = query.eq("project_id", projectId);
+
+      const { data, error } = await query;
+      if (error) console.error(error.message);
+
+      if (data) {
         setColumns({
-          todo: {
-            ...columnsStore.todo,
-            items: data.filter((t) => t.status === "todo"),
-          },
-          inprogress: {
-            ...columnsStore.inprogress,
-            items: data.filter((t) => t.status === "inprogress"),
-          },
-          done: {
-            ...columnsStore.done,
-            items: data.filter((t) => t.status === "done"),
-          },
+          todo:       { ...columnsStore.todo,       items: data.filter(t => t.status === "todo") },
+          inprogress: { ...columnsStore.inprogress, items: data.filter(t => t.status === "inprogress") },
+          done:       { ...columnsStore.done,       items: data.filter(t => t.status === "done") },
         });
       }
       setLoading(false);
     })();
-  }, []);
+  }, [projectId]);
 
-  /*--------------------------------------------------*
-   | ✋  DRAG logic                                    |
-   *--------------------------------------------------*/
+  /* ---------------- drag logic ---------------- */
   const onDragEnd = useCallback(
     async (result) => {
       const { source, destination } = result;
       if (!destination) return;
 
-      // 1️⃣ same spot
       if (
         source.droppableId === destination.droppableId &&
-        source.index === destination.index
-      )
-        return;
+        source.index       === destination.index
+      ) return;
 
-      // 2️⃣ mutate local
-      const sourceClone = Array.from(columns[source.droppableId].items);
-      const destClone = Array.from(columns[destination.droppableId].items);
-      const [movedItem] = sourceClone.splice(source.index, 1);
-      destClone.splice(destination.index, 0, movedItem);
+      /* local mutate */
+      const srcItems  = Array.from(columns[source.droppableId].items);
+      const dstItems  = Array.from(columns[destination.droppableId].items);
+      const [moved]   = srcItems.splice(source.index, 1);
+      dstItems.splice(destination.index, 0, moved);
 
-      // 3️⃣ set state
       setColumns({
         ...columns,
-        [source.droppableId]: {
-          ...columns[source.droppableId],
-          items: sourceClone,
-        },
-        [destination.droppableId]: {
-          ...columns[destination.droppableId],
-          items: destClone,
-        },
+        [source.droppableId]: { ...columns[source.droppableId], items: srcItems },
+        [destination.droppableId]: { ...columns[destination.droppableId], items: dstItems },
       });
 
-      // 4️⃣ persist
+      /* persist status change */
       if (source.droppableId !== destination.droppableId) {
         await supabase
           .from("todos")
           .update({ status: destination.droppableId })
-          .eq("id", movedItem.id);
+          .eq("id", moved.id);
       }
     },
     [columns]
   );
 
-  /*--------------------------------------------------*
-   | 🔄  RENDER                                        |
-   *--------------------------------------------------*/
+  /* ---------------- render ---------------- */
   if (loading) {
     return (
       <div className="loader-wrapper">
@@ -102,14 +91,19 @@ export default function KanbanBoard() {
 
   return (
     <div className="board-wrapper">
-      {/* ── Top‑bar ────────────────────────────────── */}
+      {/* ── Top-bar ───────────────────────────────────────── */}
       <div className="kanban-topbar">
-        <h1 className="board-title">Kanban Task Board</h1>
+        {onBack ? (
+          <button className="list-toggle" onClick={onBack}>
+            ← Back
+          </button>
+        ) : (
+          <button className="list-toggle" onClick={() => navigate("/todo")}>
+            To-Do List
+          </button>
+        )}
 
-        {/* 🔁 switch back to list view */}
-        <button className="list-toggle" onClick={() => navigate("/todo")}>
-          To‑Do List
-        </button>
+        <h1 className="board-title">Kanban Task Board</h1>
 
         {/* 🔒 logout */}
         <button
@@ -123,7 +117,7 @@ export default function KanbanBoard() {
         </button>
       </div>
 
-      {/* ── Board Columns ─────────────────────────── */}
+      {/* ── Columns ─────────────────────────────────────── */}
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="columns">
           {Object.entries(columns).map(([colId, col]) => (
@@ -136,8 +130,7 @@ export default function KanbanBoard() {
                     ref={provided.innerRef}
                     {...provided.droppableProps}
                     className={
-                      "task-list " +
-                      (snapshot.isDraggingOver ? "task-list--active" : "")
+                      "task-list " + (snapshot.isDraggingOver ? "task-list--active" : "")
                     }
                   >
                     {col.items.map((task, idx) => (
@@ -146,18 +139,15 @@ export default function KanbanBoard() {
                         draggableId={task.id.toString()}
                         index={idx}
                       >
-                        {(provided, snapshot) => (
+                        {(prov, snap) => (
                           <li
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
+                            ref={prov.innerRef}
+                            {...prov.draggableProps}
+                            {...prov.dragHandleProps}
                             className={
-                              "task-card " +
-                              (snapshot.isDragging
-                                ? "task-card--dragging"
-                                : "")
+                              "task-card " + (snap.isDragging ? "task-card--dragging" : "")
                             }
-                            style={provided.draggableProps.style}
+                            style={prov.draggableProps.style}
                           >
                             {task.task}
                           </li>

@@ -4,22 +4,39 @@ import { supabase } from '../supabaseClient';
 import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 
+// ➡️ centralise route here – change once if you rename the route later
+const PROJECTS_ROUTE = '/projects'; // ⬅️ set this to whatever your Projects grid route is
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  /* ------------------------------------------------------------
+     If the user already has an active session we send them
+     directly to the Projects grid instead of the Todo page.
+  ------------------------------------------------------------ */
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (session) {
-        navigate('/todo'); // agar user already logged in hai toh todo page pe redirect kar de
+        navigate(PROJECTS_ROUTE, { replace: true });
+        //     ^^^^^^^^^^^^^^^
+        // user already logged-in → go straight to Projects grid
       }
     };
+
     checkSession();
   }, [navigate]);
 
+  /* ------------------------------------------------------------
+     Handle form submit → try to sign in → on success go to
+     Projects grid. Any auth error is surfaced in <p.error>.
+  ------------------------------------------------------------ */
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -32,7 +49,7 @@ export default function Login() {
     if (error) {
       setError('Invalid login credentials');
     } else {
-      navigate('/todo');
+      navigate(PROJECTS_ROUTE, { replace: true });
     }
   };
 
@@ -46,7 +63,7 @@ export default function Login() {
           type="email"
           placeholder="Email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
 
@@ -54,7 +71,7 @@ export default function Login() {
           type="password"
           placeholder="Password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           required
         />
 
