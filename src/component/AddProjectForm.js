@@ -3,14 +3,25 @@ import { supabase } from "../supabaseClient";
 
 export default function AddProjectForm({ onAdd }) {
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    setLoading(true);
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      alert("User not authenticated");
+      setLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from("projects")
@@ -18,12 +29,15 @@ export default function AddProjectForm({ onAdd }) {
       .select()
       .single();
 
-    if (!error) {
+    if (error) {
+      console.error("Insert Error:", error.message);
+      alert(error.message);
+    } else {
       onAdd(data);
       setName("");
-    } else {
-      console.error(error.message);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -33,8 +47,11 @@ export default function AddProjectForm({ onAdd }) {
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="New project name"
+        disabled={loading}
       />
-      <button type="submit">Add</button>
+      <button type="submit" disabled={loading}>
+        {loading ? "Adding..." : "Add"}
+      </button>
     </form>
   );
 }

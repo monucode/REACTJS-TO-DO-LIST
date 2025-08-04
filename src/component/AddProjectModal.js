@@ -13,8 +13,7 @@ export default function AddProjectModal({ onClose, onAdd }) {
     const { data, error } = await supabase
       .from("projects")
       .insert([{ name: name.trim(), owner_id: user.id }])
-      .select()
-      .single();
+      .select().single();
     setSaving(false);
     if (!error) { onAdd(data); onClose(); }
     else alert(error.message);
@@ -24,11 +23,7 @@ export default function AddProjectModal({ onClose, onAdd }) {
     <div className="pl-modal-back">
       <form className="pl-modal" onSubmit={submit}>
         <h3>New Project</h3>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Project name"
-        />
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name" />
         <div className="pl-modal-actions">
           <button type="button" onClick={onClose}>Cancel</button>
           <button type="submit" disabled={saving}>{saving ? "Saving…" : "Create"}</button>
