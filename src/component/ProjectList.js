@@ -98,7 +98,6 @@ export default function ProjectList() {
 
       if (userError || !user) return navigate("/");
 
-      // Thanks to RLS, we just fetch all projects user is allowed to see
       const { data: projects, error: projectError } = await supabase
         .from("projects")
         .select("*")
@@ -149,7 +148,7 @@ export default function ProjectList() {
   };
 
   return (
-    <>
+    <div className="pl-container">
       <header className="pl-header">
         <h1>Your Projects</h1>
         <button className="pl-logout" onClick={handleLogout}>
@@ -189,6 +188,6 @@ export default function ProjectList() {
           onAdd={addToList}
         />
       )}
-    </>
+    </div>
   );
 }

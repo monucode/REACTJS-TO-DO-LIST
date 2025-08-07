@@ -8,34 +8,47 @@ export default function ProjectDetail() {
   const [project, setProject] = useState(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [canManageMembers, setCanManageMembers] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchProject() {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("id", projectId)
-        .single();
+    async function fetchData() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (error) {
+      const [projectRes, memberRes] = await Promise.all([
+        supabase
+          .from("projects")
+          .select("*")
+          .eq("id", projectId)
+          .single(),
+        supabase
+          .from("team_members")
+          .select("user_id, name, email")
+          .eq("project_id", projectId),
+      ]);
+
+      if (projectRes.error) {
         alert("Project not found");
         navigate("/projects");
         return;
       }
-      setProject(data);
+
+      setProject(projectRes.data);
+      setMembers(memberRes.data || []);
+
+      // ✅ check permission: if current user is owner or team member
+      const isOwner = projectRes.data.owner_id === user.id;
+      const isMember = (memberRes.data || []).some(
+        (m) => m.email === user.email
+      );
+
+      setCanManageMembers(isOwner || isMember);
+      setLoading(false);
     }
 
-    async function fetchMembers() {
-      const { data, error } = await supabase
-        .from("project_members")
-        .select(`user_id, role, users(username, email)`)
-        .eq("project_id", projectId);
-
-      if (!error) setMembers(data);
-    }
-
-    Promise.all([fetchProject(), fetchMembers()]).finally(() => setLoading(false));
+    fetchData();
   }, [projectId, navigate]);
 
   function onMemberAdded(newMember) {
@@ -51,19 +64,28 @@ export default function ProjectDetail() {
       <h2>Team Members</h2>
       {members.length === 0 && <p>No team members yet.</p>}
       <ul>
-        {members.map((m) => (
-          <li key={m.user_id}>
-            {m.users?.username || "Unknown"} ({m.users?.email}) - {m.role}
+        {members.map((m, index) => (
+          <li key={index}>
+            {m.name} ({m.email})
           </li>
         ))}
       </ul>
 
-      <h3>Add Team Member</h3>
-      <AddTeamMember projectId={projectId} onMemberAdded={onMemberAdded} />
+      {/* ✅ Show AddTeamMember form to owner or any added member */}
+      {canManageMembers && (
+        <>
+          <h3>Add Team Member</h3>
+          <AddTeamMember projectId={projectId} onAdd={onMemberAdded} />
+        </>
+      )}
 
       <hr />
-      <button onClick={() => navigate(`/projects/${projectId}/list`)}>View Tasks List</button>
-      <button onClick={() => navigate(`/projects/${projectId}/kanban`)}>View Kanban Board</button>
+      <button onClick={() => navigate(`/projects/${projectId}/list`)}>
+        View Tasks List
+      </button>
+      <button onClick={() => navigate(`/projects/${projectId}/kanban`)}>
+        View Kanban Board
+      </button>
     </div>
   );
 }

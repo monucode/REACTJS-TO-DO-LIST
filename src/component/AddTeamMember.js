@@ -17,7 +17,12 @@ export default function AddTeamMember({ projectId, onAdd }) {
     setBusy(true);
     setMessage("");
 
-    // ✅ Check if already added
+    // Get current user info
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // Check if already exists
     const { data: existing, error: fetchError } = await supabase
       .from("team_members")
       .select("*")
@@ -36,10 +41,17 @@ export default function AddTeamMember({ projectId, onAdd }) {
       return;
     }
 
-    // ✅ Add new member
+    // Insert new member with user_id
     const { data, error } = await supabase
       .from("team_members")
-      .insert([{ project_id: projectId, name: name.trim(), email: email.trim() }])
+      .insert([
+        {
+          project_id: projectId,
+          name: name.trim(),
+          email: email.trim(),
+          user_id: user.id, // ✅ store who added them
+        },
+      ])
       .select()
       .single();
 
@@ -74,7 +86,6 @@ export default function AddTeamMember({ projectId, onAdd }) {
         {busy ? "Adding…" : "Add Member"}
       </button>
 
-      {/* ✅ Small Toast Message */}
       {message && (
         <p style={{ marginTop: "0.5rem", color: message.startsWith("✅") ? "green" : "red" }}>
           {message}
