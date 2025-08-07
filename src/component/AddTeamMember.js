@@ -9,20 +9,40 @@ export default function AddTeamMember({ projectId, onAdd }) {
 
   async function submit(e) {
     e.preventDefault();
+
     if (!name.trim() || !email.trim()) {
-      setMessage("Name and Email required");
+      setMessage("Name and Email are required.");
       return;
     }
 
     setBusy(true);
     setMessage("");
 
-    // Get current user info
+    // ✅ 1. Get current user
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // Check if already exists
+    if (!user) {
+      setBusy(false);
+      setMessage("⚠️ Not authenticated.");
+      return;
+    }
+
+    // ✅ 2. Check if the email belongs to a signed-up user (from profiles table)
+    const { data: userMatch, error: userLookupError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", email.trim())
+      .single();
+
+    if (userLookupError || !userMatch) {
+      setBusy(false);
+      setMessage("⚠️ No user found with that email. Ask them to sign up first.");
+      return;
+    }
+
+    // ✅ 3. Check if member already exists
     const { data: existing, error: fetchError } = await supabase
       .from("team_members")
       .select("*")
@@ -31,17 +51,17 @@ export default function AddTeamMember({ projectId, onAdd }) {
 
     if (fetchError) {
       setBusy(false);
-      setMessage("Error checking existing members");
+      setMessage("⚠️ Error checking existing members.");
       return;
     }
 
     if (existing.length > 0) {
       setBusy(false);
-      setMessage("Member already exists in this project.");
+      setMessage("⚠️ Member already exists in this project.");
       return;
     }
 
-    // Insert new member with user_id
+    // ✅ 4. Add new member
     const { data, error } = await supabase
       .from("team_members")
       .insert([
@@ -49,7 +69,7 @@ export default function AddTeamMember({ projectId, onAdd }) {
           project_id: projectId,
           name: name.trim(),
           email: email.trim(),
-          user_id: user.id, // ✅ store who added them
+          user_id: user.id, // the user who added them
         },
       ])
       .select()
@@ -58,7 +78,7 @@ export default function AddTeamMember({ projectId, onAdd }) {
     setBusy(false);
 
     if (error) {
-      setMessage(error.message);
+      setMessage(`❌ ${error.message}`);
       return;
     }
 
