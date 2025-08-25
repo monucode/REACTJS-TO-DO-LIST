@@ -1,3 +1,4 @@
+// src/component/Signup.js
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
@@ -9,7 +10,6 @@ export default function Signup() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // ✅ Email format validation using regex
   const isValidEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
     return regex.test(email);
@@ -20,23 +20,41 @@ export default function Signup() {
     setError(null);
 
     if (!isValidEmail(email)) {
-      setError('Please enter a valid email address (e.g., example@gmail.com)');
+      setError('Please enter a valid email address');
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
+    // 1) Sign up
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      // Optional: sign out to force login after signup
-      await supabase.auth.signOut();
-      alert('Signup successful! Please login.');
-      navigate('/'); // Redirect to login page
+    if (signUpError) {
+      setError(signUpError.message || 'Database error saving new user');
+      return;
     }
+
+    const userId = data?.user?.id;
+    if (userId) {
+      // ✅ Ensure profile is created (UPSERT instead of insert)
+      const { error: profileErr } = await supabase
+        .from('profiles')
+        .upsert({
+          id: userId,
+          email: email.toLowerCase(),
+        });
+
+      if (profileErr) {
+        console.warn('Profile creation error:', profileErr.message);
+      }
+    }
+
+    // ⚠️ IMPORTANT:
+    // Don't signOut immediately. If email confirmation is ON, Supabase
+    // will automatically prevent login until verified.
+    alert('Signup successful — please check your email to confirm (if required). Then login.');
+    navigate('/');
   };
 
   return (
