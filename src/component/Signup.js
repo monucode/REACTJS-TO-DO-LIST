@@ -24,7 +24,6 @@ export default function Signup() {
       return;
     }
 
-    // 1) Sign up
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -37,24 +36,16 @@ export default function Signup() {
 
     const userId = data?.user?.id;
     if (userId) {
-      // ✅ Ensure profile is created (UPSERT instead of insert)
-      const { error: profileErr } = await supabase
+      await supabase
         .from('profiles')
         .upsert({
           id: userId,
           email: email.toLowerCase(),
         });
-
-      if (profileErr) {
-        console.warn('Profile creation error:', profileErr.message);
-      }
     }
 
-    // ⚠️ IMPORTANT:
-    // Don't signOut immediately. If email confirmation is ON, Supabase
-    // will automatically prevent login until verified.
-    alert('Signup successful — please check your email to confirm (if required). Then login.');
-    navigate('/');
+    alert('Signup successful — now please login.');
+    navigate('/login', { state: { fromSignup: true } });   // ✅ always go to login page
   };
 
   return (
@@ -81,7 +72,7 @@ export default function Signup() {
 
         <p style={{ marginTop: '1rem', textAlign: 'center' }}>
           Already have an account?{' '}
-          <Link to="/" style={{ color: '#3b82f6', textDecoration: 'none' }}>
+          <Link to="/login" style={{ color: '#3b82f6', textDecoration: 'none' }}>
             Log In
           </Link>
         </p>

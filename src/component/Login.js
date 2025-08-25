@@ -1,42 +1,31 @@
-// Login.js
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Auth.css';
 
-// ➡️ centralise route here – change once if you rename the route later
-const PROJECTS_ROUTE = '/projects'; // ⬅️ set this to whatever your Projects grid route is
+const PROJECTS_ROUTE = '/projects';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
-  /* ------------------------------------------------------------
-     If the user already has an active session we send them
-     directly to the Projects grid instead of the Todo page.
-  ------------------------------------------------------------ */
   useEffect(() => {
     const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (session) {
+      // ✅ Sirf tabhi redirect karna jab login page normal open ho
+      // signup se aane ke case me mat bhejna
+      if (session && location.state?.fromSignup !== true) {
         navigate(PROJECTS_ROUTE, { replace: true });
-        //     ^^^^^^^^^^^^^^^
-        // user already logged-in → go straight to Projects grid
       }
     };
 
     checkSession();
-  }, [navigate]);
+  }, [navigate, location]);
 
-  /* ------------------------------------------------------------
-     Handle form submit → try to sign in → on success go to
-     Projects grid. Any auth error is surfaced in <p.error>.
-  ------------------------------------------------------------ */
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');

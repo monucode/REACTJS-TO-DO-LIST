@@ -54,14 +54,15 @@ import ProjectTodoList from "./component/ProjectTodoList";
 import ProjectKanban from "./component/ProjectKanban";
 // import ProjectDetail from "./component/ProjectDetail";
 
-import ProtectedRoute from "./component/ProtectedRoute"; // ✅ Import this
+import ProtectedRoute from "./component/ProtectedRoute"; 
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Public routes */}
+        {/* ✅ Default entry → Login */}
         <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
         {/* Protected routes */}
@@ -90,7 +91,7 @@ function App() {
           }
         />
 
-        {/* Optional legacy pages – protect if needed */}
+        {/* Optional legacy pages */}
         <Route path="/todo" element={<Todowrapper />} />
         <Route path="/kanban" element={<KanbanBoard />} />
       </Routes>
