@@ -24,12 +24,19 @@ export default function Signup() {
       return;
     }
 
+    // ✅ Add a client-side check for password length
+    if (password.length < 8) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     });
 
     if (signUpError) {
+      // ✅ Display the specific error message from Supabase
       setError(signUpError.message || 'Database error saving new user');
       return;
     }
@@ -44,7 +51,10 @@ export default function Signup() {
         });
     }
 
-    alert('Signup successful — now please login.');
+    // ✅ Let the user know they need to confirm their email
+    alert(
+      'Signup successful! Please check your email to confirm your account before logging in.'
+    );
     navigate('/login', { state: { fromSignup: true } });   // ✅ always go to login page
   };
 

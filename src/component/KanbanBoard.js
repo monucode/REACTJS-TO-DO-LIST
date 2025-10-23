@@ -28,7 +28,7 @@ export default function KanbanBoard({ projectId = null, onBack = null }) {
       let query = supabase
         .from("todos")
         .select("*")
-        .order("created_at");
+        .order("inserted_at");
 
       if (projectId) query = query.eq("project_id", projectId);
 

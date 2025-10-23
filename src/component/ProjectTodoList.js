@@ -69,12 +69,27 @@ export default function ProjectTodoList() {
   const addTodo = async (task) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const tmp = { id: Date.now(), task, completed:false, project_id:projectId };
+
+    // Use a more robust temporary ID and include the default status
+    const tempId = `temp-${Date.now()}-${Math.random()}`;
+    const tmp = {
+      id: tempId,
+      task,
+      completed: false,
+      project_id: projectId,
+      status: 'todo' // Default status for new tasks
+    };
     setTodos(p => [...p, tmp]);
 
     const { data, error } = await supabase
-      .from("todos")
-      .insert([{ task, completed:false, user_id:user.id, project_id:projectId }])
+      .from("todos") // The table name should be 'todos'
+      .insert([{
+        task,
+        completed: false,
+        user_id: user.id,
+        project_id: projectId,
+        status: 'todo' // Add status on insert
+      }])
       .select().single();
     if (error) setTodos(p => p.filter(t => t.id !== tmp.id));
     else       setTodos(p => p.map(t => t.id === tmp.id ? data : t));
