@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HexaToDo</string>
+    <string name="title_activity_main">HexaToDo</string>
+    <string name="package_name">com.hexamadtodo.app</string>
+    <string name="custom_url_scheme">com.hexamadtodo.app</string>
+</resources>

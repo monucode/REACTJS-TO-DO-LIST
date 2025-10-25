@@ -4,6 +4,8 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/status-bar": "^7.0.3",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
@@ -50,6 +52,8 @@
     ]
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
     "gh-pages": "^6.3.0"
   }
 }
